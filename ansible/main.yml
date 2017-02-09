@@ -1,0 +1,11 @@
+- hosts: ubuntu
+  gather_facts: True
+  vars:
+    user_name: django
+    home_dir: /home/django
+    env_root: /home/django/tasks
+    task1_root: /home/django/tasks/tasks1
+
+  roles:
+    - system
+    - django

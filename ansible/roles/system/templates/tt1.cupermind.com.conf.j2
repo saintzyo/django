@@ -1,0 +1,21 @@
+upstream django {
+    server 127.0.0.1:8000;
+}
+
+server {
+    listen 80;
+    server_name tt1.cupermind.com;
+    charset utf-8;
+
+    access_log /var/log/nginx/tt1.access.log;
+    error_log /var/log/nginx/tt1.error.log;
+
+    location /static {
+        alias {{task1_root}}/static;
+}
+
+    location / {
+        uwsgi_pass django;
+        include {{task1_root}}/task1/uwsgi_params;
+    }
+}

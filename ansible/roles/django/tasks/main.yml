@@ -1,0 +1,72 @@
+---
+
+- name: install pip
+  apt: name=python-pip state=installed
+
+- name: install virtualenv
+  pip: name=virtualenv
+
+- name: create new virtualenv
+  command: virtualenv {{env_root}}
+
+- name: instal uwsgi
+  pip: name=uwsgi virtualenv={{env_root}}
+
+- name: install MySQL-python
+  pip: name=MySQL-python virtualenv={{env_root}}
+
+- name: delete repo if exest
+  file: path={{task1_root}} state=absent
+
+- name: clone git repo
+  git: repo=https://github.com/kirpit/django-sample-app.git dest={{task1_root}}
+
+- name: rename project folder
+  command: mv {{task1_root}}/projectname {{task1_root}}/task1
+
+- name: rename local.py
+  command: mv {{task1_root}}/task1/settings/local.template.py {{task1_root}}/task1/settings/local.py
+
+- name: replace database engine
+  replace: dest={{task1_root}}/task1/settings/local.py regexp='django.db.backends.postgresql_psycopg2' replace='django.db.backends.mysql'
+
+- name: replace database
+  replace: dest={{task1_root}}/task1/settings/local.py regexp='dev_database_name' replace='{{user_name}}'
+
+- name: replace database user
+  replace: dest={{task1_root}}/task1/settings/local.py regexp='dev_user' replace='{{user_name}}'
+
+- name: replace database user pass
+  replace: dest={{task1_root}}/task1/settings/local.py regexp='dev_p@ssword' replace='{{user_name}}'
+
+- name: replace projectname in views
+  replace: dest={{task1_root}}/task1/urls.py regexp='projectname.home.views' replace='task1.home.views'
+#  with_items:
+#    - { regexp: 'django.db.backends.postgresql_psycopg2', line: 'django.db.backends.mysql' }
+#    - { regexp: 'dev_database_name', line: '{{user_name}}' }
+#    - { regexp: 'dev_user', line: '{{user_name}}' }
+#    - { regexp: 'dev_p@ssword', line: '123456' }
+
+- name: install requirements
+  pip: requirements={{task1_root}}/requirements.txt virtualenv={{env_root}}
+
+- name: move wsgi.py
+  command: mv {{task1_root}}/task1/wsgi.py {{task1_root}}/wsgi.py
+
+- name: copy uwsgi_params
+  copy: src=uwsgi_params dest={{task1_root}}/task1/uwsgi_params
+
+- name: copy script
+  copy: src=replace.sh dest={{task1_root}}/replace.sh owner=root group=root mode=0644
+
+- name: replace {{ projectname }}
+  command: sh {{task1_root}}/replace.sh
+
+- name: django mirgate
+  django_manage: command=migrate app_path={{task1_root}}/task1 virtualenv={{env_root}}
+
+- name: set owner
+  file: path={{env_root}} state=directory owner={{user_name}} group={{user_name}} mode=0755 recurse=yes
+  
+- name: restart supervisor
+  systemd: name=supervisor state=restarted

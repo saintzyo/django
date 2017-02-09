@@ -1,0 +1,7 @@
+[program:django]
+command=/home/django/tasks/bin/uwsgi --socket 127.0.0.1:8000 --wsgi-file wsgi.py
+directory={{task1_root}}
+user=django
+autostart=true
+autorestart=true
+environment=PATH="{{env_root}}/bin"
