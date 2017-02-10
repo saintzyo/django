@@ -1,3 +1,2 @@
 [django]
 ubuntu ansible_connection=local
-ubuntu1 ansible_host=192.168.1.107 ansible_ssh_user=root ansible_ssh_pass=rootpass
